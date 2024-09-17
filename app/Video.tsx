@@ -1,11 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react';
-import option from './Option';
-import Timeline from './timeline';
-import { TimelineProps
 
- } from './timeline';
 const descriptions = {
     'Cooperating/helping': 'Multiple characters contribute (e.g., offer their opinions or resources) toward a shared goal.',
     'Naming others\' emotions': 'One character states an emotion that another might feel (e.g., “You look sad.”).',
@@ -16,29 +12,6 @@ const descriptions = {
 };
 
 
-interface Comment {
-    time: string;
-    text: string;
-    width: number;
-}
-
-const dummyData: Comment[] = [
-    {
-        time: "00:10",
-        text: "First comment",
-        width: 0
-    },
-    {
-        time: "00:30",
-        text: "Second comment",
-        width: 0
-    },
-    {
-        time: "01:00",
-        text: "Third comment",
-        width: 0
-    }
-];
 
 
 
@@ -73,9 +46,9 @@ const data = [
 function Video() {
     const [currentSeconds, setCurrentSeconds] = useState(0);
     const [videoLength, setVideoLength] = useState(100);
-    const [pausedTime, setPausedTime] = useState(null);
-    const videoRef = useRef(null);
-    const selectVideoRef = useRef(null);
+    const [pausedTime, setPausedTime] = useState<number | null>(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const selectVideoRef = useRef<HTMLInputElement>(null);
     const [selectedFile, setSelectedFile] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedSkill, setSelectedSkill] = useState(null);
@@ -86,7 +59,7 @@ function Video() {
       };
 
     const handleClick = () => {
-        selectVideoRef.current.click();
+        selectVideoRef.current?.click();
     };
     const handlePause = () => {
         if (videoRef.current != null){
@@ -123,14 +96,15 @@ function Video() {
         };
     }, []);
     
-    const content = data.map((category) => {
+
+    const content = data.map((category, index) => {
         return (
-            <div className={'w-full h-fit flex flex-col items-center gap-2'} id={'c'+category.name}>
-                <h2 className='text-black'>{category.name}</h2>
-                <div className='w-full h-fit flex flex-col items-center gap-3'>
+            <div className={'w-full h-fit flex flex-col items-center gap-2'} key={'c'+category.name+''+index}>
+                <h2 className='text-black' key={`h2-${index+''+category.name}`}>{category.name}</h2>
+                <div id={`div${index+''+category.name}`} className='w-full h-fit flex flex-col items-center gap-3'>
                     {category.skills.map((skill) => {
                         return (
-                            <button id={skill} className={`w-fit px-6 py-1 rounded-2xl ${category.color} bg-white text-black flex justify-center items-center`} onClick={handleButtonClick}>
+                            <button id={skill} key={skill+''+category.name} className={`w-fit px-6 py-1 rounded-2xl ${category.color} text-black flex justify-center items-center`} onClick={handleButtonClick}>
                                 {skill}
                             </button>
                         );
@@ -158,8 +132,8 @@ function Video() {
 
                     <div className='w-[50rem] h-full bg-white flex flex-col items-center gap-5 rounded-xl py-5 px-8 z-20'>
                         <h2 className='text-black'>{selectedSkill}</h2>
-                        <p className='text-black'>{descriptions[selectedSkill]}</p>
-                        <p className='font-bold'>You are about to make a comment on second {formatTime(pausedTime)}</p>
+                        <p className='text-black'>{selectedSkill && descriptions[selectedSkill]}</p>
+                        <p className='font-bold'>You are about to make a comment on second {formatTime(pausedTime ?? 0)}</p>
                         <div className='w-full border flex justify-center'>
                             <textarea className='border border-black px-10 py-5 w-full' placeholder='Please describe the instance'></textarea>
                         </div>
@@ -176,7 +150,7 @@ function Video() {
 
                     <input className='hidden' ref={selectVideoRef} type="file" accept=".mp4" onChange={handleFileChange} />
                     {selectedFile ? (
-                        <video className='h-full w-full' ref={videoRef} controls onPause={handlePause} onLoadedMetadata={()=>setVideoLength(videoRef.current.duration)}>
+                        <video className='h-full w-full' ref={videoRef} controls onPause={handlePause} onLoadedMetadata={() => videoRef.current && setVideoLength(videoRef.current.duration)}>
                             <source src={URL.createObjectURL(selectedFile)} type="video/mp4" />
                         </video>
                     ) : (
